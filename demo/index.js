@@ -17,28 +17,23 @@ if (requirejs) requirejs.config({
         see http://stackoverflow.com/questions/36500713/loading-codemirror-with-requirejs-from-cdn
  */
 
-// Using requirejs's "path" option (see above)
-var CODEMIRROR_ROOT = window.CODEMIRROR_ROOT = "codemirror/";
-var HYPERMD_ROOT = window.HYPERMD_ROOT = "hypermd/";
-
 require([
-    CODEMIRROR_ROOT + 'lib/codemirror',
-    CODEMIRROR_ROOT + 'mode/javascript/javascript',
-    CODEMIRROR_ROOT + 'addon/fold/foldcode',
-    CODEMIRROR_ROOT + 'addon/fold/foldgutter',
-    CODEMIRROR_ROOT + 'addon/fold/markdown-fold',
-    CODEMIRROR_ROOT + 'addon/edit/continuelist',
-    // CODEMIRROR_ROOT + 'keymap/vim',
-    HYPERMD_ROOT + 'mode/hypermd',
-    HYPERMD_ROOT + 'addon/hide-token',
-    HYPERMD_ROOT + 'addon/cursor-debounce',
-    HYPERMD_ROOT + 'addon/fold',
-    HYPERMD_ROOT + 'addon/fold-math',
-    HYPERMD_ROOT + 'addon/readlink',
-    HYPERMD_ROOT + 'addon/click',
-    HYPERMD_ROOT + 'addon/hover',
-    HYPERMD_ROOT + 'addon/paste',
-    HYPERMD_ROOT + 'addon/paste-image'
+    'codemirror/lib/codemirror',
+    'codemirror/mode/javascript/javascript',
+    'codemirror/addon/fold/foldcode',
+    'codemirror/addon/fold/foldgutter',
+    'codemirror/addon/fold/markdown-fold',
+    'codemirror/addon/edit/continuelist',
+    'hypermd/mode/hypermd',
+    'hypermd/addon/hide-token',
+    'hypermd/addon/cursor-debounce',
+    'hypermd/addon/fold',
+    'hypermd/addon/fold-math',
+    'hypermd/addon/readlink',
+    'hypermd/addon/click',
+    'hypermd/addon/hover',
+    'hypermd/addon/paste',
+    'hypermd/addon/paste-image'
 ], function (CodeMirror) {
     'use strict';
     var myTextarea = document.getElementById('demo')
