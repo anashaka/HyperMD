@@ -391,6 +391,18 @@
     for (var k in foldDefaultOption) {
       fold[k] = newCfg[k]
     }
+
+    setInterval(() => {
+      let allMathMarks = cm.getAllMarks()
+      let mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math')
+      let counter = 0
+      allMathMarks.forEach(function(element) {
+        if (element.replacedWith !== undefined && element.className === 'hmd-fold-math' && mathJaxs[counter] !== undefined) {
+          mathJaxs[counter].Text(element.lines[0].text.slice(2, -2))
+        }
+        counter++
+      })
+    }, 100)
   })
 
 })
