@@ -395,7 +395,6 @@
     setInterval(() => {
       if (cm.hmd.foldMath._lastPreview === null) {
         let allMathMarks = cm.getAllMarks()
-        log.debug('marks', allMathMarks)
         let mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math')
         let counter = 0
         allMathMarks.forEach(function(element) {
