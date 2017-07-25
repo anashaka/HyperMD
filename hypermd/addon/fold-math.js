@@ -393,15 +393,21 @@
     }
 
     setInterval(() => {
-      let allMathMarks = cm.getAllMarks()
-      let mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math')
-      let counter = 0
-      allMathMarks.forEach(function(element) {
-        if (element.replacedWith !== undefined && element.className === 'hmd-fold-math' && mathJaxs[counter] !== undefined) {
-          mathJaxs[counter].Text(element.lines[0].text.slice(2, -2))
-        }
-        counter++
-      })
+      if (cm.hmd.foldMath._lastPreview === null) {
+        let allMathMarks = cm.getAllMarks()
+        log.debug('marks', allMathMarks)
+        let mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math')
+        let counter = 0
+        allMathMarks.forEach(function(element) {
+          if (element.className === 'hmd-fold-math'
+            && element.replacedWith !== undefined
+            && !element.replacedWith.outerHTML.includes(element.lines[0].text.slice(2, -2))
+            && mathJaxs[counter] !== undefined) {
+            mathJaxs[counter].Text(element.lines[0].text.slice(2, -2))
+          }
+          counter++
+        })
+      }
     }, 100)
   })
 
