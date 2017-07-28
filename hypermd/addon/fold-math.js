@@ -359,6 +359,44 @@
     return fold
   }
 
+  function countDollars(str) {
+    let counter = 0
+    for (let character of str) {
+      if (character === '$') {
+        counter++
+      }
+    }
+    return counter
+  }
+
+  function findEachFormula(formulas) {
+    let allTheFormulas = []
+    let firstDollar = false
+    let newFormula = ''
+    for (let i = 0; i < formulas.length; i++) {
+      if (formulas[i] === '$' && !firstDollar) {
+        firstDollar = true
+        newFormula += formulas[i]
+        if (formulas[i+1] === '$') {
+          newFormula += formulas[i+1]
+          i++
+        }
+      } else if (formulas[i] !== '$' && firstDollar) {
+        newFormula += formulas[i]
+      } else if (formulas[i] === '$' && firstDollar) {
+        newFormula += formulas[i]
+        if (formulas[i+1] === '$') {
+          newFormula += formulas[i+1]
+          i++
+        }
+        firstDollar = false
+        allTheFormulas.push(newFormula)
+        newFormula = ''
+      }
+    }
+    return allTheFormulas
+  }
+
   var foldDefaultOption = { // exposed options. also see Fold class.
     interval: 0,    // auto rendering interval, 0 = off
     preview: false  // provide a preview while inputing a formula
@@ -397,14 +435,28 @@
         let allMathMarks = cm.getAllMarks()
         let mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math')
         let counter = 0
+        let formulaRegExp = new RegExp('\\$.*\\$')
+        let previousLine = ''
         allMathMarks.forEach(function(element) {
-          if (element.className === 'hmd-fold-math'
-            && element.replacedWith !== undefined
-            && !element.replacedWith.outerHTML.includes(element.lines[0].text.slice(2, -2))
-            && mathJaxs[counter] !== undefined) {
-            mathJaxs[counter].Text(element.lines[0].text.slice(2, -2))
+          if (element.className === 'hmd-fold-math' 
+            && element.replacedWith !== undefined 
+            && mathJaxs[counter] !== undefined 
+            && element.lines[0] !== previousLine) {
+            if (countDollars(element.lines[0].text) % 2 === 0) {
+              let formulas = findEachFormula(Array.from(formulaRegExp.exec(element.lines[0].text)["0"]))
+              formulas.forEach(function (formula) {
+                if (mathJaxs[counter]) {
+                  if (new RegExp('\\$\\$.*\\$\\$').test(formula)) {
+                    mathJaxs[counter].Text(formula.slice(2, -2))
+                  } else {
+                    mathJaxs[counter].Text(formula.slice(1, -1))
+                  }  
+                }               
+                counter++
+              })
+            }
+            previousLine = element.lines[0]
           }
-          counter++
         })
       }
     }, 100)
