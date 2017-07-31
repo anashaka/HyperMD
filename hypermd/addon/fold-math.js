@@ -360,9 +360,9 @@
   }
 
   function countDollars(str) {
-    let counter = 0
-    for (let character of str) {
-      if (character === '$') {
+    var counter = 0
+    for (var i = 0; i<str.length; i++) {
+      if (str[i] === '$') {
         counter++
       }
     }
@@ -370,10 +370,10 @@
   }
 
   function findEachFormula(formulas) {
-    let allTheFormulas = []
-    let firstDollar = false
-    let newFormula = ''
-    for (let i = 0; i < formulas.length; i++) {
+    var allTheFormulas = []
+    var firstDollar = false
+    var newFormula = ''
+    for (var i = 0; i < formulas.length; i++) {
       if (formulas[i] === '$' && !firstDollar) {
         firstDollar = true
         newFormula += formulas[i]
@@ -395,6 +395,37 @@
       }
     }
     return allTheFormulas
+  }
+
+  function updateAllJax(cm) {
+    if (!cm.hmd.foldMath._lastPreview || cm.hmd.foldMath._lastPreview === null) {
+      var allMathMarks = cm.getAllMarks()
+      var mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math')
+      var counter = 0
+      var formulaRegExp = new RegExp('\\$.*\\$')
+      var previousLine = ''
+      allMathMarks.forEach(function(element) {
+        if (element.className === 'hmd-fold-math' 
+          && element.replacedWith !== undefined 
+          && mathJaxs[counter] !== undefined 
+          && element.lines[0] !== previousLine) {
+          if (countDollars(element.lines[0].text) % 2 === 0) {
+            var formulas = findEachFormula(Array.from(formulaRegExp.exec(element.lines[0].text)["0"]))
+            formulas.forEach(function (formula) {
+              if (mathJaxs[counter]) {
+                if (new RegExp('\\$\\$.*\\$\\$').test(formula)) {
+                  mathJaxs[counter].Text(formula.slice(2, -2))
+                } else {
+                  mathJaxs[counter].Text(formula.slice(1, -1))
+                }  
+              }               
+              counter++
+            })
+          }
+          previousLine = element.lines[0]
+        }
+      })
+    }
   }
 
   var foldDefaultOption = { // exposed options. also see Fold class.
@@ -430,36 +461,7 @@
       fold[k] = newCfg[k]
     }
 
-    setInterval(() => {
-      if (cm.hmd.foldMath._lastPreview === null) {
-        let allMathMarks = cm.getAllMarks()
-        let mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math')
-        let counter = 0
-        let formulaRegExp = new RegExp('\\$.*\\$')
-        let previousLine = ''
-        allMathMarks.forEach(function(element) {
-          if (element.className === 'hmd-fold-math' 
-            && element.replacedWith !== undefined 
-            && mathJaxs[counter] !== undefined 
-            && element.lines[0] !== previousLine) {
-            if (countDollars(element.lines[0].text) % 2 === 0) {
-              let formulas = findEachFormula(Array.from(formulaRegExp.exec(element.lines[0].text)["0"]))
-              formulas.forEach(function (formula) {
-                if (mathJaxs[counter]) {
-                  if (new RegExp('\\$\\$.*\\$\\$').test(formula)) {
-                    mathJaxs[counter].Text(formula.slice(2, -2))
-                  } else {
-                    mathJaxs[counter].Text(formula.slice(1, -1))
-                  }  
-                }               
-                counter++
-              })
-            }
-            previousLine = element.lines[0]
-          }
-        })
-      }
-    }, 100)
+    setInterval(updateAllJax, 100, cm)
   })
 
 })
