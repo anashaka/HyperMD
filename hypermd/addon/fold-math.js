@@ -397,32 +397,81 @@
     return allTheFormulas
   }
 
+  function render(jax, formula) {
+    if (new RegExp('\\$\\$.*\\$\\$').test(formula)) {
+      jax.Text(formula.slice(2, -2))
+    } else {
+      jax.Text(formula.slice(1, -1))
+    }  
+  }
+
   function updateAllJax(cm) {
+    // We don't update if there's a preview or it will change what's in it
     if (!cm.hmd.foldMath._lastPreview || cm.hmd.foldMath._lastPreview === null) {
-      var allMathMarks = cm.getAllMarks()
-      var mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math')
-      var counter = 0
+      var allMathMarks = cm.getAllMarks() // Each time there's a $..$ or $$..$$ fold-math create a mark
+      var mathJaxs = MathJax.Hub.getAllJax('hmd-fold-math') // Each time a marke is created, MathJax is called and creates a jax (rendering)
+
       var formulaRegExp = new RegExp('\\$.*\\$')
-      var previousLine = ''
-      allMathMarks.forEach(function(element) {
-        if (element.className === 'hmd-fold-math' 
-          && element.replacedWith !== undefined 
-          && mathJaxs[counter] !== undefined 
-          && element.lines[0] !== previousLine) {
-          if (countDollars(element.lines[0].text) % 2 === 0) {
-            var formulas = findEachFormula(Array.from(formulaRegExp.exec(element.lines[0].text)["0"]))
-            formulas.forEach(function (formula) {
-              if (mathJaxs[counter]) {
-                if (new RegExp('\\$\\$.*\\$\\$').test(formula)) {
-                  mathJaxs[counter].Text(formula.slice(2, -2))
-                } else {
-                  mathJaxs[counter].Text(formula.slice(1, -1))
+
+      // Index of the next jax that needs to be updated
+      var jaxCounter = 0
+  
+      // Previous mark (string)
+      var previousMark = ''
+      // Array of string of formulas find in the mark
+      var formulas
+
+      var formulasNumberOnASameLine = 0
+
+      // Counter to count how many times we passed the same mark (if there's 2 formulas on a line, we will have 2 marks with the same content)
+      var sameMarkPassed = 0
+
+      allMathMarks.forEach(function(mark) {
+        if (mark.className === 'hmd-fold-math' && mark.replacedWith !== undefined && mathJaxs[jaxCounter] !== undefined) {
+          var currentMark = mark.lines[0].text
+
+          // Avoid undone formulas' rendering
+          // TODO: See what happens if we write actual '$'
+          if (countDollars(currentMark) % 2 === 0) {
+            sameMarkPassed++
+
+            // We arrive on a new mark
+            if (currentMark !== previousMark) {
+
+              // If the previous mark was containing formulas and one of them was edited we fall in this case.
+              // We need to make a jump in our jaxCounter to keep jax and marks synchronized.
+              if (sameMarkPassed === formulasNumberOnASameLine) {
+                jaxCounter += formulasNumberOnASameLine - 1
+              }
+
+              sameMarkPassed = 1
+              formulas = findEachFormula(Array.from(formulaRegExp.exec(mark.lines[0].text)["0"]))
+              formulasNumberOnASameLine = formulas.length
+
+              // If there's only one formula then there's nothing special to do apart from rendering it
+              if (formulasNumberOnASameLine === 1) {
+                if (mathJaxs[jaxCounter]) {
+                  render(mathJaxs[jaxCounter], formulas[0])
                 }  
-              }               
-              counter++
-            })
+                jaxCounter++
+              }
+            }
+
+            // This mark is the same as the previous one.
+            // If we passed it as many times as the number of formulas in it it means that none of them is currently edited
+            else if (mark.lines[0].text === previousMark && sameMarkPassed === formulasNumberOnASameLine) {
+              formulas.forEach(function (formula) {
+                if (mathJaxs[jaxCounter]) {
+                  render(mathJaxs[jaxCounter], formula)
+                }               
+                jaxCounter++
+              })
+              sameMarkPassed = 0
+            }
           }
-          previousLine = element.lines[0]
+
+          // We store this mark to compare it later
+          previousMark = currentMark
         }
       })
     }
@@ -461,7 +510,7 @@
       fold[k] = newCfg[k]
     }
 
-    setInterval(updateAllJax, 100, cm)
+    setInterval(updateAllJax, 1000, cm)
   })
 
 })
