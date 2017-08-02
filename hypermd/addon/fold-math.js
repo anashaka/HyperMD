@@ -445,7 +445,7 @@
               }
 
               sameMarkPassed = 1
-              formulas = findEachFormula(Array.from(formulaRegExp.exec(mark.lines[0].text)["0"]))
+              formulas = findEachFormula(Array.from(formulaRegExp.exec(currentMark)["0"]))
               formulasNumberOnASameLine = formulas.length
 
               // If there's only one formula then there's nothing special to do apart from rendering it
@@ -468,6 +468,8 @@
               })
               sameMarkPassed = 0
             }
+          } else {
+            jaxCounter += findEachFormula(Array.from(formulaRegExp.exec(currentMark)["0"])).length
           }
 
           // We store this mark to compare it later
