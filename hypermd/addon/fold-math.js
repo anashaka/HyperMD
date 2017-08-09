@@ -512,7 +512,7 @@
       fold[k] = newCfg[k]
     }
 
-    setInterval(updateAllJax, 1000, cm)
+    setInterval(updateAllJax, 3000, cm)
   })
 
 })
